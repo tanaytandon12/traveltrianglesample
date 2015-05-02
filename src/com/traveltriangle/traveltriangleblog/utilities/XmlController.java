@@ -7,6 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.traveltriangle.traveltriangleblog.listener.XMLRequestListener;
 
@@ -33,6 +34,7 @@ public class XmlController extends AsyncTask<Void, Void, Object> {
 			httpUrlConn.connect();
 			httpUrlConn.setConnectTimeout(5000);
 			InputStream inputStream = httpUrlConn.getInputStream();
+			Log.d("TAG", "going to respond");
 			response = mRequestListener.inRequest(inputStream);
 		} catch (MalformedURLException ex) {
 			ex.printStackTrace();
