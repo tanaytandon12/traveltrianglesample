@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -32,7 +33,7 @@ public class BlogFragment extends Fragment implements OnClickListener {
 		
 		timeTextView.setText(currentItem.getTime());
 		titleTextView.setText(currentItem.getTitle());
-		descTextView.setText(currentItem.getDescription());
+		descTextView.setText(Html.fromHtml(currentItem.getDescription()));
 		linkTextView.setText(currentItem.getLink());
 		
 		linkTextView.setOnClickListener(this);
