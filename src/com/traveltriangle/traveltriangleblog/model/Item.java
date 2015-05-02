@@ -7,6 +7,13 @@ public class Item {
 	private String time;
 	private String link;
 
+	public Item() {
+		this.description = null;
+		this.time = null;
+		this.link = null;
+		this.title = null;
+	}
+
 	public void setDescription(String description) {
 		this.description = description;
 	}
@@ -15,7 +22,7 @@ public class Item {
 		return this.description;
 	}
 
-	public void setDate(String time) {
+	public void setTime(String time) {
 		this.time = time;
 	}
 

@@ -34,7 +34,7 @@ public class XmlController extends AsyncTask<Void, Void, Object> {
 			httpUrlConn.connect();
 			httpUrlConn.setConnectTimeout(5000);
 			InputStream inputStream = httpUrlConn.getInputStream();
-			Log.d("TAG", "going to respond");
+			Log.d("TAG", "going to respond" + httpUrlConn.getContentType());
 			response = mRequestListener.inRequest(inputStream);
 		} catch (MalformedURLException ex) {
 			ex.printStackTrace();

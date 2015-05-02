@@ -9,9 +9,12 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -43,7 +46,6 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 		prevImageView.setOnClickListener(this);
 		nextImageView.setOnClickListener(this);
 
-		Log.d("TAG", "Highway to Hell");
 		XmlController.setRequestListener(this);
 		new XmlController().execute();
 
@@ -70,12 +72,10 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 
 	@Override
 	public void preRequest() {
-		Log.d("TAG", "pre");
 	}
 
 	@Override
 	public Object inRequest(Object request) {
-		Log.d("TAG", "uin");
 		InputStream inputStream = (InputStream) request;
 		try {
 			XmlPullParserFactory xppf = XmlPullParserFactory.newInstance();
@@ -85,29 +85,46 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 
 			int event = mXmlPullParser.getEventType();
 			Item item = null;
-			boolean flag = false;
 			String eventName = "";
+			boolean flag = false;
 			while (event != XmlPullParser.END_DOCUMENT) {
 				switch (event) {
 				case XmlPullParser.START_TAG:
 					eventName = mXmlPullParser.getName();
-					if (eventName.equalsIgnoreCase(Config.ITEM)) {
+					if (eventName.equals(Config.ITEM)) {
 						item = new Item();
 						flag = true;
 					}
+					break;
+
+				case XmlPullParser.TEXT:
 					if (flag) {
 						String text = mXmlPullParser.getText();
 						switch (eventName) {
-						case Config.DATE:
-							item.setDate(text);
-							break;
-						case Config.DESC:
-							item.setDescription(text);
+
 						case Config.TITLE:
-							item.setTitle(text);
+							if (item.getTitle() == null) {
+								item.setTitle(text);
+							}
 							break;
+
+						case Config.TIME:
+							if (item.getTime() == null) {
+								item.setTime(text);
+							}
+							break;
+
+						case Config.DESC:
+							if (item.getDescription() == null) {
+								item.setDescription(text);
+							}
+							break;
+
 						case Config.LINK:
-							item.setLink(text);
+							if (item.getLink() == null) {
+								item.setLink(text);
+							}
+
 						default:
 							break;
 						}
@@ -115,16 +132,15 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 					break;
 
 				case XmlPullParser.END_TAG:
-					
-					if (eventName.equalsIgnoreCase(Config.ITEM)) {
-						Log.d("TAG", item.getDescription() + " \n" + item.getTitle());
+					eventName = mXmlPullParser.getName();
+					if (eventName.equals(Config.ITEM)) {
 						items.add(item);
+						item = new Item();
 						flag = false;
 					}
 					break;
-
 				default:
-					break; 
+					break;
 				}
 				event = mXmlPullParser.next();
 			}
@@ -134,18 +150,92 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
+
 		return null;
 	}
 
 	@Override
 	public void postRequest(Object response) {
-		// TODO Auto-generated method stub
 
+		ViewPagerAdapter vpa = new ViewPagerAdapter(getSupportFragmentManager());
+		mViewPager.setAdapter(vpa);
+		if (items.size() > 1) {
+			nextImageView.setVisibility(View.VISIBLE);
+		}
+		
+		mViewPager.setOnPageChangeListener(new OnPageChangeListener() {
+			
+			@Override
+			public void onPageSelected(int pos) {
+				if(pos == 0 && items.size() > 1) {
+					nextImageView.setVisibility(View.VISIBLE);
+					prevImageView.setVisibility(View.GONE);
+				} else if (pos == items.size() - 1 && pos != 0) {
+					prevImageView.setVisibility(View.VISIBLE);
+					nextImageView.setVisibility(View.GONE);
+				} else {
+					nextImageView.setVisibility(View.VISIBLE);
+					prevImageView.setVisibility(View.VISIBLE);
+				}
+			}
+			
+			@Override
+			public void onPageScrolled(int arg0, float arg1, int arg2) {
+				
+			}
+			
+			@Override
+			public void onPageScrollStateChanged(int arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 	}
 
 	@Override
 	public void onClick(View v) {
-		// TODO Auto-generated method stub
+		int id = v.getId();
+		int currentPosition;
+		switch (id) {
+		case R.id.next_icon:
+			currentPosition = mViewPager.getCurrentItem();
+			mViewPager.setCurrentItem(currentPosition + 1, true);
+			if (currentPosition == 0) {
+				prevImageView.setVisibility(View.VISIBLE);
+			} else if ((currentPosition + 1) == items.size() - 1) {
+				nextImageView.setVisibility(View.GONE);
+			}
+			break;
+		case R.id.prev_icon:
+			currentPosition = mViewPager.getCurrentItem();
+			mViewPager.setCurrentItem(currentPosition - 1, true);
+			if (currentPosition == items.size() - 1) {
+				nextImageView.setVisibility(View.VISIBLE);
+			} else if (currentPosition == 1) {
+				prevImageView.setVisibility(View.GONE);
+			}
+			break;
+		}
+
+	}
+
+	private class ViewPagerAdapter extends FragmentPagerAdapter {
+
+		public ViewPagerAdapter(FragmentManager fm) {
+			super(fm);
+		}
+
+		@Override
+		public Fragment getItem(int pos) {
+			BlogFragment bf = new BlogFragment();
+			bf.setCurrentItem(items.get(pos));
+			return bf;
+		}
+
+		@Override
+		public int getCount() {
+			return items.size();
+		}
 
 	}
 }
